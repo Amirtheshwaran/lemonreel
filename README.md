@@ -166,10 +166,14 @@ edit yourself, such as a screen recording or a product demo:
 lemonreel say examples/voiceover-script.md --voice af_heart
 ```
 
-Blank lines separate parts. `# headings` and `[stage directions]` are skipped, so one file can be
-both your teleprompter and the narration. Each part is spoken by the Omni model's voice, transcribed
-by its listener, and re-spoken with phonetic respellings if a name came out wrong. The output folder
-contains:
+Blank lines and `# headings` separate parts. Headings, `[stage directions]` and lines that are only a
+link or a `---` rule are not read aloud, so one file can be both your teleprompter and the narration.
+Markdown emphasis is removed, while names like `snake_case` are kept. Each part is spoken by the Omni
+model's voice, transcribed by its listener, and re-spoken with phonetic respellings if a name came
+out wrong (that step uses the writer LLM when there is one; `say` also works with only a voice
+model). You can pass the text itself in quotes instead of a file; an argument that looks like a
+file name but doesn't exist is reported as missing rather than read out. The output folder
+(`<script>-voiceover/` next to the script, or `--out`) contains:
 
 | File | What it is |
 |------|------------|
@@ -177,6 +181,9 @@ contains:
 | `part-NN.wav` | One file per part, to drop under the matching clip in a video editor |
 | `voiceover.srt` | Captions timed from the listener's word timestamps |
 | `timing.txt` | Where each part starts and how long it runs |
+| `takes/` | Every take and the 16 kHz copies sent to the listener; safe to delete |
+
+Running `say` again into the same folder replaces the previous run's files.
 
 ## How it works
 

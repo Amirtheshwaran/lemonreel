@@ -1,4 +1,4 @@
-"""Command line interface: ``lemonreel make | remake | doctor | studio | voices``."""
+"""Command line interface: ``lemonreel make | remake | say | doctor | studio | voices``."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import webbrowser
 from pathlib import Path
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 
@@ -215,8 +216,8 @@ def cmd_make(args: argparse.Namespace, *, remake: bool = False) -> int:
         board_path = result.workdir / "storyboard.json"
         console.print(
             Panel.fit(
-                f"Storyboard written to [bold]{board_path}[/]\n"
-                f"Edit it, then finish the video with:\n  lemonreel remake {result.workdir}",
+                f"Storyboard written to [bold]{escape(str(board_path))}[/]\n"
+                f"Edit it, then finish the video with:\n  lemonreel remake {escape(str(result.workdir))}",
                 title="Storyboard ready",
                 border_style="yellow",
             )
@@ -226,11 +227,13 @@ def cmd_make(args: argparse.Namespace, *, remake: bool = False) -> int:
     assert timeline is not None and result.report_html is not None
     console.print(
         Panel.fit(
-            f"[bold]{result.storyboard.title}[/]\n"
-            f"Video     {result.video}\n"
-            f"Report    {result.report_html}\n"
-            f"Captions  {result.workdir / 'captions.srt'}\n"
-            f"Length    {timeline.duration:.0f}s video, made in {result.seconds:.0f}s",
+            f"[bold]{escape(result.storyboard.title)}[/]\n"
+            + escape(
+                f"Video     {result.video}\n"
+                f"Report    {result.report_html}\n"
+                f"Captions  {result.workdir / 'captions.srt'}\n"
+                f"Length    {timeline.duration:.0f}s video, made in {result.seconds:.0f}s"
+            ),
             title="Done",
             border_style="green",
         )
@@ -327,20 +330,16 @@ def cmd_voices(args: argparse.Namespace) -> int:
 
 def cmd_say(args: argparse.Namespace) -> int:
     from lemonreel.omni import resolve_toolkit
-    from lemonreel.say import make_voiceover, read_script
+    from lemonreel.say import make_voiceover, resolve_script
 
-    script = read_script(args.script)
-    script_path = Path(args.script)
-    folder = (
-        Path(args.out)
-        if args.out
-        else (
-            script_path.with_name(script_path.stem + "-voiceover")
-            if script_path.is_file()
-            else Path("voiceover")
-        )
-    )
     try:
+        script, script_path = resolve_script(args.script)
+        if args.out:
+            folder = Path(args.out).expanduser()
+        elif script_path is not None:
+            folder = script_path.with_name(script_path.stem + "-voiceover")
+        else:
+            folder = Path("voiceover")
         cfg = ReelConfig(
             language=args.language,
             voice=args.voice,
@@ -356,11 +355,12 @@ def cmd_say(args: argparse.Namespace) -> int:
             writer=args.writer,
             voice=args.voice_model,
             listener=args.listener,
+            require_writer=False,  # the LLM only suggests respellings here
         )
         console.print(
-            f"[bold yellow]>[/] Speaking with {toolkit.voice.id} ({cfg.voices[0]})"
+            f"[bold yellow]>[/] Speaking with {escape(toolkit.voice.id)} ({escape(cfg.voices[0])})"
             + (
-                f", listening back with {toolkit.listener.id}"
+                f", listening back with {escape(toolkit.listener.id)}"
                 if toolkit.listener and cfg.listen_back
                 else ""
             )
@@ -372,29 +372,28 @@ def cmd_say(args: argparse.Namespace) -> int:
             script,
             folder,
             pause=args.pause,
-            log=lambda m: console.print(f"  [dim]{m}[/]"),
+            log=lambda m: console.print(f"  [dim]{escape(m)}[/]"),
         )
     except ToolkitError as exc:
-        console.print(f"[red]{exc}[/]")
+        console.print(f"[red]{escape(str(exc))}[/]")
         return 2
-    except (LemonadeError, RuntimeError, ValueError) as exc:
-        console.print(f"[red]Failed:[/] {exc}")
+    except (LemonadeError, RuntimeError, ValueError, OSError) as exc:
+        console.print(f"[red]Failed:[/] {escape(str(exc))}")
         return 1
+    except KeyboardInterrupt:
+        console.print("[yellow]Stopped.[/]")
+        return 130
     fixes = {k: v for part in result.parts for k, v in part.fixes.items()}
+    lines = [
+        f"Voiceover  {result.wav}  ({result.duration:.1f}s, {len(result.parts)} parts)",
+        f"Parts      {result.folder / 'part-NN.wav'}",
+        f"Captions   {result.srt}",
+        f"Timing     {result.timing}",
+    ]
+    if fixes:
+        lines.append(f"Fixed      {', '.join(f'{k} -> {v}' for k, v in fixes.items())}")
     console.print(
-        Panel.fit(
-            f"Voiceover  {result.wav}  ({result.duration:.1f}s, {len(result.parts)} parts)\n"
-            f"Parts      {result.folder}/part-NN.wav\n"
-            f"Captions   {result.srt}\n"
-            f"Timing     {result.timing}"
-            + (
-                f"\nFixed      {', '.join(f'{k} -> {v}' for k, v in fixes.items())}"
-                if fixes
-                else ""
-            ),
-            title="Voiceover ready",
-            border_style="green",
-        )
+        Panel.fit(escape("\n".join(lines)), title="Voiceover ready", border_style="green")
     )
     return 0
 
@@ -455,7 +454,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     say.add_argument("script", help="a .txt/.md script file, or the text itself in quotes")
     say.add_argument("--out", help="output folder (default: <script>-voiceover next to the script)")
-    say.add_argument("--voice", help="Kokoro voice (default af_heart; see `lemonreel voices`)")
+    say.add_argument(
+        "--voice",
+        help="Kokoro voice (default depends on --language: af_heart for en; see `lemonreel voices`)",
+    )
     say.add_argument("--speed", type=float, default=1.0, help="speaking speed (default 1.0)")
     say.add_argument("--pause", type=float, default=0.7, help="seconds of silence between parts")
     say.add_argument("--language", default="en", help="en, en-gb, es, fr, hi, it, ja, pt, zh")

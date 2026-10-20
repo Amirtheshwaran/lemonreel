@@ -12,5 +12,5 @@
 `lexicon.json` shows the format for pronunciation files: the written word on the left, how the voice
 should say it on the right. Captions keep the written form.
 
-`voiceover-script.md` shows the script format for `lemonreel say`: blank lines separate parts,
-`# headings` and `[stage directions]` are not read aloud.
+`voiceover-script.md` shows the script format for `lemonreel say`: blank lines and `# headings`
+separate parts, and headings and `[stage directions]` are not read aloud.

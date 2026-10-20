@@ -238,6 +238,8 @@ class Narrator:
         return problems
 
     def _respell(self, written: str, heard: str) -> dict[str, str]:
+        if self.toolkit.writer is None:
+            return {}  # nobody to ask for respellings; the first take stands
         problems = self._problems(written, heard)
         if not problems:
             return {}

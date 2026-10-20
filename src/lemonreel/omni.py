@@ -119,7 +119,7 @@ class ToolkitError(RuntimeError):
 class Toolkit:
     """The concrete models chosen for each role."""
 
-    writer: ModelInfo
+    writer: ModelInfo | None  # only None when resolved with require_writer=False
     voice: ModelInfo
     illustrator: ModelInfo | None = None
     listener: ModelInfo | None = None
@@ -128,7 +128,7 @@ class Toolkit:
 
     @property
     def can_see(self) -> bool:
-        return self.writer.has("vision")
+        return self.writer is not None and self.writer.has("vision")
 
     @property
     def can_listen(self) -> bool:
@@ -235,6 +235,7 @@ def resolve_toolkit(
     voice: str | None = None,
     listener: str | None = None,
     want_upscaler: bool = False,
+    require_writer: bool = True,
 ) -> Toolkit:
     """Choose a model for every role.
 
@@ -313,7 +314,7 @@ def resolve_toolkit(
             roles[role] = _require(index, name, role)
 
     hints = [f"Download the default Omni model with `lemonade pull {DEFAULT_OMNI}`"]
-    if roles["writer"] is None:
+    if roles["writer"] is None and require_writer:
         raise ToolkitError("No downloaded chat LLM was found for writing the script.", hints)
     if roles["voice"] is None:
         raise ToolkitError("No downloaded text-to-speech model was found for narration.", hints)
