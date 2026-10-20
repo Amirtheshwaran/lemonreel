@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lemonreel"
+version = "0.1.0"
+description = "Turn any document, web page or voice memo into a narrated, illustrated explainer video, 100% on your own PC with Lemonade Omni models."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "Amirtheshwaran Navaneethakrishnan" }]
+keywords = [
+  "lemonade",
+  "local-ai",
+  "amd",
+  "ryzen-ai",
+  "omni",
+  "text-to-speech",
+  "whisper",
+  "stable-diffusion",
+  "video-generation",
+  "explainer-video",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Environment :: Web Environment",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Multimedia :: Video",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "httpx>=0.27",
+  "pillow>=10.1",
+  "imageio-ffmpeg>=0.5",
+  "rich>=13.7",
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+pdf = ["pypdf>=4.0"]
+dev = ["pytest>=8.0", "ruff>=0.6", "pypdf>=4.0"]
+
+[project.scripts]
+lemonreel = "lemonreel.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Amirtheshwaran/lemonreel"
+Issues = "https://github.com/Amirtheshwaran/lemonreel/issues"
+Lemonade = "https://lemonade-server.ai"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lemonreel"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/lemonreel", "tests", "README.md", "LICENSE", "pyproject.toml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+ignore = ["E501", "B008", "B905", "SIM905"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
