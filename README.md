@@ -43,6 +43,7 @@ lemonreel studio                                             # or do it all in t
 - [Quick start](#quick-start)
 - [Using the Studio](#using-the-studio)
 - [Command line cookbook](#command-line-cookbook)
+- [Narrate your own videos](#narrate-your-own-videos)
 - [How it works](#how-it-works)
 - [How LemonReel uses Lemonade](#how-lemonreel-uses-lemonade)
 - [Choosing an Omni model for your hardware](#choosing-an-omni-model-for-your-hardware)
@@ -155,6 +156,27 @@ lemonreel make talk.md --omni user.MyOmni
 # Mix and match roles yourself
 lemonreel make talk.md --writer Gemma-4-E2B-it-GGUF --listener Whisper-Large-v3-Turbo
 ```
+
+## Narrate your own videos
+
+`lemonreel say` gives any script the same local voice and pronunciation checks, for videos you
+edit yourself, such as a screen recording or a product demo:
+
+```bash
+lemonreel say examples/voiceover-script.md --voice af_heart
+```
+
+Blank lines separate parts. `# headings` and `[stage directions]` are skipped, so one file can be
+both your teleprompter and the narration. Each part is spoken by the Omni model's voice, transcribed
+by its listener, and re-spoken with phonetic respellings if a name came out wrong. The output folder
+contains:
+
+| File | What it is |
+|------|------------|
+| `voiceover.wav` | The whole narration, parts separated by `--pause` seconds (default 0.7) |
+| `part-NN.wav` | One file per part, to drop under the matching clip in a video editor |
+| `voiceover.srt` | Captions timed from the listener's word timestamps |
+| `timing.txt` | Where each part starts and how long it runs |
 
 ## How it works
 
@@ -333,6 +355,7 @@ src/lemonreel/
   render.py       ffmpeg segments, chapters, soft subtitles
   report.py       report.json and report.html
   pipeline.py     the whole run, with parallel draw and speak lanes
+  say.py          voiceovers for your own videos (lemonreel say)
   studio/         local web app (FastAPI + one static page)
 ```
 

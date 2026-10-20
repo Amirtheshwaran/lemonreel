@@ -325,6 +325,80 @@ def cmd_voices(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_say(args: argparse.Namespace) -> int:
+    from lemonreel.omni import resolve_toolkit
+    from lemonreel.say import make_voiceover, read_script
+
+    script = read_script(args.script)
+    script_path = Path(args.script)
+    folder = (
+        Path(args.out)
+        if args.out
+        else (
+            script_path.with_name(script_path.stem + "-voiceover")
+            if script_path.is_file()
+            else Path("voiceover")
+        )
+    )
+    try:
+        cfg = ReelConfig(
+            language=args.language,
+            voice=args.voice,
+            speed=args.speed,
+            listen_back=not args.no_listen_back,
+            learn=not args.no_learn,
+            lexicon_path=args.lexicon,
+        )
+        client = LemonadeClient.discover(args.base_url, timeout=args.timeout)
+        toolkit = resolve_toolkit(
+            client.models(show_all=True),
+            args.omni,
+            writer=args.writer,
+            voice=args.voice_model,
+            listener=args.listener,
+        )
+        console.print(
+            f"[bold yellow]>[/] Speaking with {toolkit.voice.id} ({cfg.voices[0]})"
+            + (
+                f", listening back with {toolkit.listener.id}"
+                if toolkit.listener and cfg.listen_back
+                else ""
+            )
+        )
+        result = make_voiceover(
+            client,
+            toolkit,
+            cfg,
+            script,
+            folder,
+            pause=args.pause,
+            log=lambda m: console.print(f"  [dim]{m}[/]"),
+        )
+    except ToolkitError as exc:
+        console.print(f"[red]{exc}[/]")
+        return 2
+    except (LemonadeError, RuntimeError, ValueError) as exc:
+        console.print(f"[red]Failed:[/] {exc}")
+        return 1
+    fixes = {k: v for part in result.parts for k, v in part.fixes.items()}
+    console.print(
+        Panel.fit(
+            f"Voiceover  {result.wav}  ({result.duration:.1f}s, {len(result.parts)} parts)\n"
+            f"Parts      {result.folder}/part-NN.wav\n"
+            f"Captions   {result.srt}\n"
+            f"Timing     {result.timing}"
+            + (
+                f"\nFixed      {', '.join(f'{k} -> {v}' for k, v in fixes.items())}"
+                if fixes
+                else ""
+            ),
+            title="Voiceover ready",
+            border_style="green",
+        )
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="lemonreel",
@@ -372,6 +446,29 @@ def build_parser() -> argparse.ArgumentParser:
 
     voices = sub.add_parser("voices", help="list Kokoro voices")
     voices.set_defaults(func=cmd_voices)
+
+    say = sub.add_parser(
+        "say",
+        help="turn a script into a local voiceover (WAV per part, full WAV, SRT, timing sheet)",
+        description="Narrate a script with the Omni model's voice. Blank lines separate parts; "
+        "'# headings' and '[stage directions]' are not read aloud.",
+    )
+    say.add_argument("script", help="a .txt/.md script file, or the text itself in quotes")
+    say.add_argument("--out", help="output folder (default: <script>-voiceover next to the script)")
+    say.add_argument("--voice", help="Kokoro voice (default af_heart; see `lemonreel voices`)")
+    say.add_argument("--speed", type=float, default=1.0, help="speaking speed (default 1.0)")
+    say.add_argument("--pause", type=float, default=0.7, help="seconds of silence between parts")
+    say.add_argument("--language", default="en", help="en, en-gb, es, fr, hi, it, ja, pt, zh")
+    say.add_argument("--no-listen-back", action="store_true", help="don't check pronunciation")
+    say.add_argument("--no-learn", action="store_true", help="don't save learned pronunciations")
+    say.add_argument("--lexicon", help="JSON file of extra pronunciations")
+    say.add_argument("--omni", help="Omni model to use")
+    say.add_argument("--writer", help="override the LLM used for respellings")
+    say.add_argument("--voice-model", help="override the text-to-speech model")
+    say.add_argument("--listener", help="override the speech-recognition model")
+    say.add_argument("--base-url", help="Lemonade Server URL")
+    say.add_argument("--timeout", type=float, default=900)
+    say.set_defaults(func=cmd_say)
     return parser
 
 
