@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-label="LemonReel: turn any document into a narrated, illustrated video, made entirely on your PC with Lemonade">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e4c5c"/>
+      <stop offset="1" stop-color="#061820"/>
+    </linearGradient>
+    <linearGradient id="film" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffd60a" stop-opacity="0"/>
+      <stop offset=".25" stop-color="#ffd60a" stop-opacity=".9"/>
+      <stop offset=".75" stop-color="#ffd60a" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#ffd60a" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" rx="24" fill="url(#bg)"/>
+  <g transform="translate(110 150)">
+    <ellipse cx="0" cy="0" rx="62" ry="50" fill="#ffd60a"/>
+    <ellipse cx="66" cy="0" rx="16" ry="10" fill="#ffd60a"/>
+    <ellipse cx="-24" cy="-22" rx="16" ry="9" fill="#fff5b8" opacity=".85"/>
+    <polygon points="-14,-22 -14,22 24,0" fill="#0e4c5c"/>
+  </g>
+  <text x="225" y="140" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="74" font-weight="800" fill="#ffffff">LemonReel</text>
+  <text x="228" y="190" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="27" fill="#d6e6ea">Any document, web page or voice memo → a narrated, illustrated video</text>
+  <text x="228" y="228" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22" fill="#ffd60a">Made 100% on your own PC with Lemonade Omni models</text>
+  <rect x="228" y="252" width="760" height="6" rx="3" fill="url(#film)"/>
+</svg>
