@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LemonReel Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='30' cy='34' rx='24' ry='20' fill='%23ffd60a'/%3E%3Cellipse cx='54' cy='34' rx='6' ry='4' fill='%23ffd60a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="28" cy="24" rx="24" ry="19" fill="var(--lemon)"/><ellipse cx="53" cy="24" rx="7" ry="4.5" fill="var(--lemon)"/><ellipse cx="18" cy="15" rx="6" ry="3.5" fill="#fff5b8" opacity=".8"/></svg>
+      <div>
+        <div class="brand-name">LemonReel <span>Studio</span></div>
+        <div class="brand-sub">Narrated, illustrated videos made entirely on this PC</div>
+      </div>
+    </div>
+    <div id="server" class="server-pill checking">Looking for Lemonade&hellip;</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel make" aria-labelledby="make-title">
+      <h2 id="make-title">Make a reel</h2>
+
+      <div class="tabs" role="tablist">
+        <button role="tab" class="tab active" data-kind="text" aria-selected="true">Paste text</button>
+        <button role="tab" class="tab" data-kind="url">Web page</button>
+        <button role="tab" class="tab" data-kind="file">File</button>
+        <button role="tab" class="tab" data-kind="memo">Voice memo</button>
+        <button role="tab" class="tab" data-kind="topic">Topic</button>
+      </div>
+
+      <div class="source" data-pane="text">
+        <textarea id="text" rows="9" placeholder="Paste release notes, a README, a lesson, a blog post&hellip; Markdown is fine."></textarea>
+      </div>
+      <div class="source hidden" data-pane="url">
+        <input id="url" type="url" placeholder="https://github.com/lemonade-sdk/lemonade or any article URL">
+        <p class="hint">GitHub repository links use the project's README.</p>
+      </div>
+      <div class="source hidden" data-pane="file">
+        <label class="drop" id="drop">
+          <input id="file" type="file" accept=".md,.markdown,.txt,.rst,.html,.htm,.pdf,.wav,.mp3,.m4a,.ogg,.webm,.flac">
+          <span id="drop-label"><strong>Choose a file</strong> or drop it here<br><small>Markdown, text, HTML, PDF or audio</small></span>
+        </label>
+      </div>
+      <div class="source hidden" data-pane="memo">
+        <div class="memo">
+          <button id="record" class="record" type="button"><span class="dot"></span><span id="record-label">Record</span></button>
+          <span id="memo-time" class="memo-time">0:00</span>
+          <audio id="memo-audio" controls class="hidden"></audio>
+        </div>
+        <p class="hint">Describe your idea out loud. The listener model transcribes it and the writer turns it into a script.</p>
+      </div>
+      <div class="source hidden" data-pane="topic">
+        <input id="topic" type="text" placeholder="e.g. How an NPU speeds up local AI">
+        <p class="hint">With no source, the writer explains the topic from general knowledge.</p>
+      </div>
+
+      <div class="options">
+        <div class="field">
+          <label for="scenes">Scenes <output id="scenes-out">6</output></label>
+          <input id="scenes" type="range" min="2" max="12" value="6">
+        </div>
+        <div class="field">
+          <label for="minutes">Length <output id="minutes-out">1.5 min</output></label>
+          <input id="minutes" type="range" min="0.5" max="5" step="0.5" value="1.5">
+        </div>
+        <div class="field">
+          <span class="label">Format</span>
+          <div class="seg" id="mode">
+            <button type="button" data-value="narrator" class="on">Narrator</button>
+            <button type="button" data-value="duo">Two hosts</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label">Shape</span>
+          <div class="seg" id="aspect">
+            <button type="button" data-value="16:9" class="on">16:9</button>
+            <button type="button" data-value="9:16">9:16</button>
+            <button type="button" data-value="1:1">1:1</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="language">Language</label>
+          <select id="language"></select>
+        </div>
+        <div class="field">
+          <label for="look">Look</label>
+          <select id="look"></select>
+        </div>
+      </div>
+
+      <details class="more">
+        <summary>More options</summary>
+        <div class="options">
+          <div class="field">
+            <label for="omni">Omni model</label>
+            <select id="omni"><option value="">Automatic</option></select>
+          </div>
+          <div class="field">
+            <label for="voice">Voice</label>
+            <select id="voice"></select>
+          </div>
+          <div class="field">
+            <label for="voice2">Second host</label>
+            <select id="voice2"></select>
+          </div>
+          <div class="field">
+            <label for="audience">Audience</label>
+            <input id="audience" type="text" value="curious people who are new to the topic">
+          </div>
+          <label class="check"><input id="critique" type="checkbox" checked> Let the vision model grade and redraw pictures</label>
+          <label class="check"><input id="listen" type="checkbox" checked> Listen back to every line and fix mispronunciations</label>
+          <label class="check"><input id="hd" type="checkbox"> Render in 1080p</label>
+        </div>
+      </details>
+
+      <button id="go" class="go" type="button" disabled>Make my reel</button>
+      <p id="form-error" class="error hidden" role="alert"></p>
+    </section>
+
+    <section class="panel board" aria-live="polite">
+      <div id="empty" class="empty">
+        <h2>What you'll see here</h2>
+        <ol class="explain">
+          <li><b>Writer</b> &mdash; the Omni model's LLM turns your source into a storyboard.</li>
+          <li><b>Illustrator</b> &mdash; its image model paints every scene; the LLM looks at each picture and asks for a redraw if it misses.</li>
+          <li><b>Voice</b> &mdash; its speech model narrates; the <b>listener</b> transcribes every line back and fixes words it mispronounced.</li>
+          <li><b>Editor</b> &mdash; scenes, captions and chapters are cut into an MP4, with a report of what ran where.</li>
+        </ol>
+      </div>
+
+      <div id="run" class="hidden">
+        <div class="run-head">
+          <h2 id="run-title">Working&hellip;</h2>
+          <div class="run-actions">
+            <span id="elapsed" class="elapsed">0s</span>
+            <button id="cancel" type="button" class="ghost">Cancel</button>
+          </div>
+        </div>
+        <ol class="stages" id="stages">
+          <li data-stage="connect">Connect</li>
+          <li data-stage="read">Read</li>
+          <li data-stage="write">Write</li>
+          <li data-stage="draw">Draw</li>
+          <li data-stage="speak">Speak</li>
+          <li data-stage="edit">Edit</li>
+          <li data-stage="report">Report</li>
+        </ol>
+        <div id="toolkit" class="toolkit"></div>
+
+        <div id="result" class="result hidden">
+          <video id="video" controls playsinline></video>
+          <div class="result-actions">
+            <a id="dl-video" class="button" download>Download MP4</a>
+            <a id="dl-srt" class="button ghost" download>Captions (SRT)</a>
+            <a id="open-report" class="button ghost" target="_blank" rel="noopener">Open run report</a>
+          </div>
+          <p id="result-path" class="hint"></p>
+        </div>
+
+        <div id="scenes-grid" class="scenes"></div>
+        <details class="log" open>
+          <summary>Activity</summary>
+          <ul id="log"></ul>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <section class="gallery-wrap">
+    <h2>Recent reels</h2>
+    <div id="gallery" class="gallery"><p class="hint">Finished reels show up here.</p></div>
+  </section>
+
+  <footer class="foot">LemonReel <span id="version"></span> &middot; powered by <a href="https://lemonade-server.ai" target="_blank" rel="noopener">Lemonade</a> &middot; nothing you make here leaves this computer</footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>
