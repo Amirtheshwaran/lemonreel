@@ -190,7 +190,7 @@ class LemonadeClient:
                 kwargs["timeout"] = timeout
             try:
                 response = self._http().request(method, url, **kwargs)
-            except httpx.ConnectError as exc:
+            except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
                 raise LemonadeUnavailable(
                     f"Can't reach Lemonade Server at {self.base_url}. {START_HINT}",
                     endpoint=path,
