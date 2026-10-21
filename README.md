@@ -33,7 +33,7 @@ lemonreel make notes.m4a --mode duo --aspect 9:16            # voice memo -> two
 lemonreel studio                                             # or do it all in the browser
 ```
 
-> **Demo Video:** Watch the 90-second walkthrough on YouTube: [https://youtu.be/YOUR_LINK](https://youtu.be/YOUR_LINK)
+> **Demo Video:** Watch the 90-second walkthrough on YouTube: https://www.youtube.com/watch?v=bzAaTOG2xao
 ---
 
 ## Contents
